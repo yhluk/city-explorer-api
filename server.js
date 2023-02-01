@@ -1,30 +1,48 @@
 'use strict'
 
-//.env lbrery
 require('dotenv').config();
-
-//express acces
 const express = require('express');
-
-//initializing the express lib
-const app = express();
-
+const weatherData = require('./data/weather.json')
 const cors = require('cors');
 
+const app = express();
 app.use(cors())
 
 const PORT = process.env.PORT || 3002;
 
-const weatherData = require('./data/weather.json')
 
-
-app.get('/lists', (request, response)=>{
-  response.send(lists)
+app.get('/', (request, response) => {
+  response.send('its live')
 })
 
-app.get('/sup',(request, response)=>{
-  // console.log(request.query)
-  let weatherData = lis
-})
+class Forecast {
+  constructor(day) {
+    this.date = day.valid_date
+    this.description = day.weather.description
+  }
+}
 
-app.listen(PORT, ()=>console.log(`listening on ${PORT}`))
+
+app.get('/weather', (request, response) => {
+  let searchQuery = request.query.searchQuery;
+  // console.log(searchQuery);
+
+  if (!searchQuery) {
+    response.status(400).send('bad request');
+  }
+
+  let foundCity = weatherData.find(obj => obj.city_name.toLowerCase() === searchQuery.toLowerCase())
+  console.log(foundCity);
+
+
+  if (foundCity) {
+    let forecastArr = foundCity.data.map(obj => new Forecast(obj))
+    response.status(201).send(forecastArr)
+  }
+  else {
+    res.status(204).send('city not found');
+  }
+});
+
+
+app.listen(PORT, () => console.log(`listening on ${PORT}`))
